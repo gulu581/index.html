@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Image Classifier</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      color: #333;
+    }
+
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      width: 350px;
+      text-align: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+
+    h2 {
+      margin-bottom: 20px;
+    }
+
+    input[type="file"] {
+      margin: 15px 0;
+    }
+
+    button {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    button:hover {
+      background: #5a67d8;
+    }
+
+    img {
+      max-width: 100%;
+      margin-top: 15px;
+      border-radius: 8px;
+    }
+
+    .result {
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .confidence {
+      font-size: 14px;
+      color: gray;
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>🧠 Image Classifier</h2>
+
+  <input type="file" id="imageInput" accept="image/*">
+  <br>
+
+  <button onclick="uploadImage()">Predict</button>
+
+  <img id="preview" src="" alt="Preview" style="display:none;">
+
+  <div class="result" id="result"></div>
+  <div class="confidence" id="confidence"></div>
+</div>
+
+<script>
+  const input = document.getElementById("imageInput");
+  const preview = document.getElementById("preview");
+
+  input.addEventListener("change", () => {
+    const file = input.files[0];
+    if (file) {
+      preview.src = URL.createObjectURL(file);
+      preview.style.display = "block";
+    }
+  });
+
+  async function uploadImage() {
+    const file = input.files[0];
+    if (!file) {
+      alert("Please select an image!");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    document.getElementById("result").innerText = "⏳ Predicting...";
+
+    try {
+      const response = await fetch("https://mnit-day3-model.onrender.com/predict/", {
+        method: "POST",
+        body: formData
+      });
+
+      const data = await response.json();
+
+      if (data.error) {
+        document.getElementById("result").innerText = "❌ Error";
+        document.getElementById("confidence").innerText = data.error;
+      } else {
+        document.getElementById("result").innerText =
+          "Prediction: " + data.prediction;
+
+        document.getElementById("confidence").innerText =
+          "Confidence: " + (data.confidence * 100).toFixed(2) + "%";
+      }
+
+    } catch (error) {
+      document.getElementById("result").innerText = "❌ Server Error";
+      console.error(error);
+    }
+  }
+</script>
+
+</body>
+</html>
